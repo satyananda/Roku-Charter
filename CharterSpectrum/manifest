@@ -1,0 +1,12 @@
+title=CharterSpectrum
+major_version=1
+minor_version=0
+build_version=119
+mm_icon_focus_hd=pkg:/locale/default/images/icon_focus_hd.png
+mm_icon_side_hd=pkg:/locale/default/images/icon_side_hd.png
+mm_icon_focus_sd=pkg:/locale/default/images/icon_focus_sd.png
+mm_icon_side_sd=pkg:/locale/default/images/icon_side_sd.png
+splash_screen_sd=pkg:/locale/default/images/splashscreen_sd.png
+splash_screen_hd=pkg:/locale/default/images/splashscreen_hd.png
+splash_color=#ffffff
+splash_min_time=2000

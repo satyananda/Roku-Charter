@@ -1,0 +1,235 @@
+' 
+' Author: Pradeep
+' Summary of last revision: $Id$
+'
+Function screenFactorySharedInstance() as object
+    
+    Logger().log(5, "In screen factory method")
+    if (m.screenFactory = invalid)
+        screenFactory = CreateObject("roAssociativeArray")
+        screenFactory.makeWrapper = Function(screenName as string) as object
+            ' Originally we started creating the screen object and tried to add the screenListeners to it, but 
+            ' we were not able to add anything to the screen object, since the language did not
+            ' allow us to extend or implement over the existing screen object, so we
+            ' created a wrapper for screen object and tried using the screen object from the wrapper.
+            
+            Wrapper = CreateObject("roAssociativeArray")
+            Wrapper.Screen = CreateObject(screenName)
+            Wrapper.screenlisteners = CreateObject("roAssociativeArray")
+           
+            Wrapper.addEventListener = Function(eventName as string, listener as function)
+                m.screenlisteners[eventName] = listener    
+            End Function            
+            attachScreenEventProcessor(Wrapper)
+
+            Wrapper.showAndListen = Function()
+                m.Screen.setMessagePort(CreateObject("roMessagePort"))
+                m.shouldListen = true
+                m.Screen.show()
+                 
+                Logger().log(5, "Inside showAndListen() : ")
+                while (m.shouldListen)
+                    event = wait(0, m.Screen.getMessagePort())
+                    m.processEvent(event)
+                end while
+            End Function
+            return Wrapper
+        End Function
+        m.screenFactory = screenFactory
+    end if
+    return m.screenFactory
+End Function
+
+Function attachScreenEventProcessor(Wrapper as object)
+    if type(Wrapper.Screen) = "roKeyboardScreen"
+        attachKeyboardScreenEventProcessor(Wrapper)
+     else if type(Wrapper.Screen) = "roGridScreen"
+        attachGridScreenEventProcessor(Wrapper)
+    else if type(Wrapper.Screen) = "roVideoScreen"
+        attachVideoScreenEventProcessor(Wrapper)
+    else if type(Wrapper.Screen) = "roSpringboardScreen"
+        attachSpringBoardScreenEventProcessor(Wrapper)
+    else if type(Wrapper.Screen) = "roMessageDialog"
+        attachMessageDialogEventProcessor(Wrapper)
+    else if type(Wrapper.Screen) = "roPosterScreen"
+        attachPosterScreenEventProcessor(Wrapper)
+    else if type(Wrapper.Screen) = "roImageCanvas"
+        attachCanvasScreenEventProcessor(Wrapper)
+    else if type(Wrapper.Screen) = "roSearchScreen"
+        attachSearchScreenEventProcessor(Wrapper)
+    else if type(Wrapper.Screen) = "roListScreen"
+        attachListScreenEventProcessor(Wrapper)
+    end if
+End Function
+
+Function attachListScreenEventProcessor(Wrapper as object)
+    Wrapper.processEvent = Function(event as object)
+        if type(event) = "roListScreenEvent"
+            if event.isListItemFocused()
+                if m.screenlisteners.DoesExist("onListItemFocused")
+                    m.screenlisteners["onListItemFocused"](m, m.Screen, event)
+                end if
+            else if event.isListItemSelected()
+                if m.screenlisteners.DoesExist("onListItemSelected")
+                    m.screenlisteners["onListItemSelected"](m, m.Screen, event)
+                end if  
+            else      
+                Logger().log(5, "Common events")
+                handleCommonEvents(m, event)
+            end if
+        end if
+    End function
+End Function
+
+Function attachSearchScreenEventProcessor(Wrapper as object)
+    Wrapper.processEvent = Function(event as object)
+        if type(event) = "roSearchScreenEvent"
+        Logger().log(5, "search screen event ")
+            if event.isCleared()
+                 Logger().log(5, "Cleared")
+                if m.screenlisteners.DoesExist("onCleared")
+                    m.screenlisteners["onCleared"](m, m.Screen, event)
+                end if
+            else if event.isPartialResult()
+                Logger().log(5, "Partial Result")
+                if m.screenlisteners.DoesExist("onPartialResult")
+                    m.screenlisteners["onPartialResult"](m, m.Screen, event)
+                end if
+            else if event.isFullResult()
+                 Logger().log(5, "Full Result")
+                if m.screenlisteners.DoesExist("onFullResult")
+                    m.screenlisteners["onFullResult"](m, m.Screen, event)
+                end if
+            else if event.isButtonInfo()
+                Logger().log(5, "Button info")
+                if m.screenlisteners.DoesExist("onButtonInfo")
+                    m.screenlisteners["onButtonInfo"](m, m.Screen, event)
+                end if
+            else      
+                Logger().log(5, "Common events")
+                handleCommonEvents(m, event)
+            end if
+        end if        
+    End Function
+End Function
+
+Function attachMessageDialogEventProcessor(Wrapper as object)
+    Wrapper.processEvent = Function(event as object)
+        if event.isButtonPressed()
+            if m.screenlisteners.DoesExist("onButtonPressed")
+                m.screenlisteners["onButtonPressed"](m, m.Screen,event)
+            end if
+        else
+            handleCommonEvents(m, event)
+        end if
+    End Function
+End Function
+
+
+Function attachCanvasScreenEventProcessor(Wrapper as object)
+    Wrapper.processEvent = Function(event as object)        
+        handleCommonEvents(m, event)        
+    End Function
+End Function
+
+Function attachVideoScreenEventProcessor(Wrapper as object)
+    Wrapper.processEvent = Function(event as object)
+            
+           Logger().log(5, "In VideoScreenEventProcessor type(event)")
+        if type(event)="roVideoScreenEvent"
+             
+            Logger().log(5, "Inside attachVideoScreenEventProcessor of roVideoScreenEvent")
+            
+            if event.isStreamStarted()
+                Logger().log(5, "Inside attachVideoScreenEventProcessor of roVideoScreenEvent")
+                m.screenlisteners["onStreamStarted"](m, m.Screen, event)
+             else if event.isPlaybackPosition()
+                Logger().log(5, "roVideoScreenEvent isPlaybackPosition")
+                m.screenlisteners["onPlaybackPosition"](m, m.Screen, event)
+            else
+                handleCommonEvents(m,event)
+            end if
+        
+        end if 'if type(event)="roVideoScreenEvent"
+        
+    End Function
+
+End Function
+
+'EpisodicView Screen Event Processor - ***roPosterScreen***
+Function attachPosterScreenEventProcessor(Wrapper as object)
+    Wrapper.processEvent = Function(event as object)
+        if event.isListItemSelected()
+            if m.screenlisteners.DoesExist("isListItemSelected")
+                m.screenlisteners["isListItemSelected"](m, m.Screen,event)
+            end if
+        else
+            handleCommonEvents(m, event)
+        end if
+    End Function
+End Function
+
+'Detail Screen Event Processor - ***roSpringBoardScreen***
+Function attachSpringBoardScreenEventProcessor(Wrapper as object)
+    Wrapper.processEvent = Function(event as object)
+        if event.isButtonPressed()
+            if m.screenlisteners.DoesExist("onButtonPressed")
+                m.screenlisteners["onButtonPressed"](m, m.Screen,event)
+            end if
+        else
+            handleCommonEvents(m, event)
+        end if
+    End Function
+End Function
+
+Function attachKeyboardScreenEventProcessor(Wrapper as object)
+    Wrapper.processEvent = Function(event as object)
+        if event.isButtonPressed()
+            if m.screenlisteners.DoesExist("onButtonPressed")
+                m.screenlisteners["onButtonPressed"](m, m.Screen,event)
+            end if
+        else
+            handleCommonEvents(m, event)
+        end if
+    End Function
+End Function
+
+Function attachGridScreenEventProcessor(Wrapper as object)
+    Wrapper.processEvent = Function(event as object)
+    Logger().log(5, "Inside attachGridScreenEventProcessor(wrapper)")
+        if event.isListItemFocused()
+            if m.screenlisteners.DoesExist("onListItemFocused")
+                m.screenlisteners["onListItemFocused"](m,m.Screen,event)
+            end if        
+        else if event.isListItemSelected()        
+            if m.screenlisteners.DoesExist("onListItemSelected")
+                Logger().log(5, "Inside attachGridScreenEventProcessor(wrapper) m.screenlisteners.DoesExist('onListItemSelected')")
+                m.screenlisteners["onListItemSelected"](m,m.Screen,event)
+            end if
+        else
+            Logger().log(5, "Inside attachGridScreenEventProcessor(wrapper) handleCommonScreenEvents()")
+            
+            handleCommonEvents(m,event)
+        end if
+End Function
+
+End Function
+
+
+Function handleCommonEvents(Wrapper as object, event as object)
+    if event.isScreenClosed()
+        
+        Logger().log(5, "Inside handleCommonEvents() isScreenClosed() ")
+        if Wrapper.screenlisteners.DoesExist("onScreenClosed")
+            Wrapper.screenlisteners["onScreenClosed"](Wrapper, Wrapper.Screen, event)
+        end if
+        Wrapper.shouldListen = false
+         
+    else if event.isRemoteKeyPressed()
+       
+        if Wrapper.screenlisteners.DoesExist("onRemoteKeyPressed")
+            'Wrapper.screenlisteners["onRemoteKeyPressed"](m, m.Screen, event)
+            Wrapper.screenlisteners["onRemoteKeyPressed"](Wrapper, Wrapper.Screen, event)
+        end if
+    end if
+End Function

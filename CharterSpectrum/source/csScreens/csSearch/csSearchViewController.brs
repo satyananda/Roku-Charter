@@ -1,0 +1,62 @@
+' 
+' Author: Pradeep
+' Summary of last revision: $Id$
+'
+
+'Use this Class to get the search screen
+Function SearchViewController() as object
+    screenFactoryInstance = screenFactorySharedInstance()
+    searchScreenWrapper = screenFactoryInstance.makeWrapper("roSearchScreen")
+    
+    searchScreenWrapper.Screen.SetSearchTermHeaderText("Results:")
+    searchScreenWrapper.Screen.SetSearchButtonText("search")
+    searchScreenWrapper.Screen.SetClearButtonEnabled(false)
+    
+    searchScreenWrapper.addEventListener("onCleared", Function(wrapper as object, screen as object, msg as object)
+
+    End Function)
+    
+    searchScreenWrapper.addEventListener("onPartialResult", Function(wrapper as object, screen as object, msg as object)
+
+    End Function)
+    
+    searchScreenWrapper.addEventListener("onFullResult", Function(wrapper as object, screen as object, msg as object)
+        searchServiceCall = SearchServiceHandler()
+        searchServiceCall.getSearchResults(wrapper, Function(targetWrapper)
+            response = SessionStore().getSearchResults().result
+            searchResultTitles = getSearchResultTitles(response)
+            targetWrapper.Screen.SetSearchTerms(searchResultTitles)
+        End Function, Function()
+            
+            Logger().log(1, "Error...")
+        End function)
+            'Logger().log(5, type(msg))
+        
+    End Function)
+    
+    searchScreenWrapper.addEventListener("onRemoteKeyPressed", Function(wrapper as object, screen as object, msg as object)
+        Logger().log(5, "navigating to results")
+    End Function)
+    
+    searchScreenWrapper.addEventListener("onScreenClosed", Function(wrapper as object,screen as object,msg as object)  
+        CommonConfig().removeFromHistory()            
+        return -1   'to terminate the event loop of Menu dialog after closed        
+    End Function)
+        
+    searchScreenWrapper.show = Function()
+        CommonConfig().addToHistory(CommonConfig().screens.search)
+        m.showAndListen()    
+    End Function   
+    
+    return searchScreenWrapper
+End Function
+
+'Retrieves the movie/serial titles alone from the complete object in the form of an array
+Function getSearchResultTitles(results as object)
+    resultsTitle = CreateObject("roArray", 1, true)
+    
+    For each item in results
+        resultsTitle.Push(item.Title)
+    End For
+    return resultsTitle
+End Function

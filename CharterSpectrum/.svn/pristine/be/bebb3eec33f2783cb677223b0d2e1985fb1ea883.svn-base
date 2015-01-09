@@ -1,0 +1,119 @@
+' 
+' Author: Satyanand
+' Summary of last revision: $Id$
+'
+'*******************OnDemand Screen********************
+'This screen will present the Moview and Serials List
+'On Selecting Moview it will Display Moview Details
+'On selecting Serials, will take to Episodes list
+'*******************************************************
+Function OnDemandViewController() as object
+    
+    
+    screenFactory = screenFactorySharedInstance()
+    screenWrapper = screenFactory.makeWrapper("roGridScreen")
+
+    screenWrapper.screen.SetBreadcrumbEnabled(true)
+    screenWrapper.screen.SetBreadcrumbText("My Library ", "On Demand") 
+    screenWrapper.screen.SetGridStyle("flat-portrait")
+    screenWrapper.screen.SetDescriptionVisible(true)
+         
+     onDemandHandler = onDemandServiceHandler()
+            onDemandHandler.getOnDemand(function()
+            Logger().log(5, "success")
+         'rowList=SessionStore().getLibraryData()
+         end function,function() 
+          
+          Logger().log(1, "failed")
+         end function)
+   
+   data = SessionStore().getSerialsData()
+     ''Categeory Titles   
+    demandCategoriez = getCategoriesByLoop(data)
+    
+    categoriesCount = demandCategoriez.Count()
+    
+    ''Array that holds all Rows data
+    screenWrapper.GridRows = []
+    
+    for i = 0 to categoriesCount-1
+
+                  
+         rowList = getRowItems(data,demandCategoriez[i])
+         
+        if rowList<> invalid and rowList.Count() > 0           
+           
+           screenWrapper.GridRows.Push(rowList)
+           
+        end if
+    end for  
+ 
+   
+    screenWrapper.screen.SetupLists(categoriesCount)
+    screenWrapper.screen.SetListNames(demandCategoriez)
+   
+    for j=0 to categoriesCount-1
+         screenWrapper.screen.SetContentList(j,screenWrapper.GridRows.GetEntry(j))    
+    end for
+    
+    
+    screenWrapper.addEventListener("onListItemFocused", Function(wrapper as object,screen as object,msg as object)
+          
+        Logger().log(5, "MyLibGridScreen onListItemFocused index : " )    
+    End Function)
+    
+    screenWrapper.addEventListener("onListItemSelected", Function(wrapper as object,screen as object,msg as object)
+        
+        ''***Movies slection take to Moview Details***
+        row = msg.GetIndex()
+        column = msg.GetData()
+        
+        video = getVideo(wrapper.GridRows,row,column)
+        videoCategory = video.Category
+       
+         
+         if  videoCategory = "movies"
+            detailScreen = DetailViewController(video,"Movie",video.Title)
+            detailScreen.showAndListen()
+         else if videoCategory = "series"
+            ''Show Episode List Screen
+            episodesScreen = showEpisodesListViewController(video)
+            episodesScreen.showAndListen()
+         end if
+         
+            
+        
+    End Function)
+    
+    screenWrapper.addEventListener("onRemoteKeyPressed", Function(wrapper as object,screen as object,msg as object)
+        
+        index = msg.GetIndex()
+        
+       
+        
+        if index=10 then
+        ''Menu Flow is not needed here * button
+            'menu = MenuView()
+            'menu.showAndListen()   
+        else if index = 3 then
+            screenWrapper.screen.Close()
+        end if
+        
+    End Function)
+    
+    screenWrapper.addEventListener("onScreenClosed", Function(wrapper as object,screen as object,msg as object)
+   
+        CommonConfig().removeFromHistory()
+    End Function)
+    
+    screenWrapper.show = Function()
+        CommonConfig().addToHistory(CommonConfig().screens.onDemand)
+        m.showAndListen()    
+    End Function
+        
+    return screenWrapper
+
+end Function
+
+
+

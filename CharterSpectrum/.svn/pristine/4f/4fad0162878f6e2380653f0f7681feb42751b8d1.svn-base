@@ -1,0 +1,44 @@
+' 
+' Author: Satyanand
+' Summary of last revision: $Id$
+'
+Function onDemandServiceHandler() as object
+    if(m.onDemandService = invalid)
+        onDemandService =  CreateObject("roAssociativeArray")
+
+        onDemandService.getOnDemand = Function(successCallback as object, errorCallback as object)
+            url = "http://mdw.prokarma.com/mockservice/serviceresponse.php?serviceurl=93d69049851aaf3dde9c5727f0eb7b5a"
+                        
+            'set your callbacks and parsers and pass this object
+            'to HttpClient to receive the callbacks
+            callbacks = CreateObject("roAssociativeArray")
+            callbacks.success = successCallback
+            callbacks.error = errorCallback
+            callbacks.handleResponse = Function(data as object)
+                'This function acts as the parser for this service response  
+                if(data <> invalid)
+                    'parse the data here and store it in model
+                    parsedResponse = CreateObject("roAssociativeArray")
+                    parsedResponse = data
+                    print "onDemandServiceHandler() onDemandServiceHandler not invalid ";parsedResponse
+                    
+                    SessionStore().setSerialsData(parsedResponse)
+                    
+                    'call the callback method inside the screen class
+                    m.success()
+                else
+                    ?"invalid data"
+                end if            
+            end Function
+            
+            'get the instance of the service factory and make the service call
+            requestFactory = ServiceFactory()
+            myLibRequest = requestFactory.createGetRequestAsync(url, callbacks)
+            myLibRequest.execute()
+        end Function        
+               
+        m.onDemandService = onDemandService
+    end if
+    
+    return m.onDemandService    
+End Function

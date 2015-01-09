@@ -1,0 +1,40 @@
+' 
+' Author: Pradeep
+' Summary of last revision: $Id: registryManager.brs 11176 2015-01-07 08:50:59Z tsatyananda2605 $
+'
+
+Function registryManagerSharedInstance() as object
+
+    if(m.registryManager=invalid)
+        registryManager = CreateObject("roAssociativeArray")
+        registryManager.section = CreateObject("roRegistrySection", "CharterCommonRegistry")
+        
+        'Use this class to get/set/delete any value stored in registry by passing its key
+        'Param: key - The key to fetch the value
+        'Returns: {Dynamic} - The value retrieved from registry. It can be of any type
+        registryManager.get = Function(key as String) as Dynamic
+            if m.section.Exists(key)
+                return m.section.Read(key)
+            endif
+           return invalid
+        End Function
+        
+        'Use this function to set any value to registry by passing a key
+        'Param: key - The key to store the value
+        'Param: value - The value to be stored
+        registryManager.set = Function(key as String, value as String) as Void
+            m.section.Write(key, value)
+            m.section.Flush()
+        End Function
+        
+        registryManager.delete = Function(key as String) as Dynamic
+                if m.section.Exists(key)
+                    m.section.Delete(key)
+                     m.section.Flush()
+                 end if
+        End Function
+        m.registryManager = registryManager
+    end if
+    return m.registryManager
+End Function
+

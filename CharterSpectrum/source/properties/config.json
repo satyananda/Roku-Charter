@@ -1,0 +1,10 @@
+{
+    "userName": "ios.only2014@charter.net",
+    "password": "iOSdevteam2014",
+    "timeout" : 6000,
+    "host": "http://mdw.prokarma.com/mockservice",
+    "endPoints": {
+        "login": "/serviceresponse.php?serviceurl=dd3fa5b6d73617619fc8a8447d6f6229",
+        "getChannels": ""
+    }
+}

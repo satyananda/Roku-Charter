@@ -1,0 +1,61 @@
+' 
+' Author: Satyanand
+' Summary of last revision: $Id$
+'
+
+'Entry point of the app.
+'Set the theme and initialize the launcher screen from here
+Function Main()
+ 
+    InitTheme()
+    IntializeFacadeScreen()       
+end Function
+
+'Setting Themes for OverHang 
+Function InitTheme() as void
+    app = CreateObject("roAppManager")
+    
+    listItemHighlight           = "#FFFFFF"
+    listItemText                = "#707070"
+    brandingGreen               = "#37491D"
+    backgroundColor             = "#1B465A"
+    theme = {
+        BackgroundColor: backgroundColor
+        OverhangSliceHD: "pkg:/locale/default/images/OverhangSliceHD.png"
+        OverhangSliceSD: "pkg:/locale/default/images/OverhangSliceSD.png"
+        OverhangLogoHD: "pkg:/locale/default/images/CharterSpectrum_Logo.png"
+        OverhangLogoSD: "pkg:/locale/default/images/CharterSpectrum_Logo.png"
+        'OverhangSecondaryLogoHD :
+        OverhangOffsetSD_X: "25"
+        OverhangOffsetSD_Y: "10"
+        OverhangOffsetHD_X: "25"
+        OverhangOffsetHD_Y: "10"
+        BreadcrumbTextLeft: brandingGreen
+        BreadcrumbTextRight: "#E1DFE0"
+        BreadcrumbDelimiter: brandingGreen
+        
+        ListItemText: listItemText
+        ListItemHighlightText: listItemHighlight
+        ListScreenDescriptionText: listItemText
+        ListItemHighlightHD: "pkg:/locale/default/images/select_bkgnd.png"
+        ListItemHighlightSD: "pkg:/locale/default/images/select_bkgnd.png"
+        CounterTextLeft: brandingGreen
+        CounterSeparator: brandingGreen
+        
+        'GridScreenBackgroundColor: "#E1DFE0"
+        GridScreenListNameColor: "#ffffff"
+        GridScreenDescriptionTitleColor: brandingGreen
+        GridScreenLogoHD: "pkg:/locale/default/images/charterSpectrum_Logo.png"
+        GridScreenLogoSD: "pkg:/locale/default/images/charterSpectrum_Logo.png"
+        GridScreenOverhangHeightHD: "138"
+        GridScreenOverhangHeightSD: "138"
+        GridScreenOverhangSliceHD: "pkg:/locale/default/images/OverhangSliceHD.png"
+        GridScreenOverhangSliceSD: "pkg:/locale/default/images/OverhangSliceSD.png"
+        GridScreenLogoOffsetHD_X: "25"
+        GridScreenLogoOffsetHD_Y: "15"
+        GridScreenLogoOffsetSD_X: "25"
+        GridScreenLogoOffsetSD_Y: "15"
+    }
+    app.SetTheme( theme )
+End Function
+
